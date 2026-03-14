@@ -1,0 +1,83 @@
+# CampusBook – Old Book Resell & Rental System
+**Walkthrough and Setup Guide**
+
+We have successfully generated the complete full-stack project for the **CampusBook** application based exactly on your requirements.
+
+## 📁 What Was Created
+
+### 1. Database Schema
+A complete MySQL relational database schema has been created at `campusbook/backend/schema.sql`. It includes:
+- Tables: `roles`, `users`, `categories`, `books`, `orders`, `order_items`, `rentals`, `reviews`, `wishlist`, `payments`
+- Proper index definitions, Foreign Keys, `ENUM` values, and Cascading Deletes.
+- Dummy Seed Data for Categories and Roles.
+
+### 2. Backend API (Node.js + Express)
+The backend folder structure properly follows an MVC pattern:
+- **`config/db.js`**: Connects via `mysql2/promise` using environment variables for security.
+- **`models/`**: Raw SQL queries for complex queries like paginated search, calculating average ratings, joining books with categories, sellers, handling transactions.
+- **`controllers/`**: Logic functions mapped directly to each requirement:
+    1.  Book Listing Module
+    2.  Search & Filter Module
+    3.  Rental Management Module
+    4.  Order & Transaction Module
+    5.  Wishlist Module
+    6.  Rating & Review Module
+    7.  Admin Dashboard Module
+- **`middleware/`**: Built JWT Authorization (`auth.js`), Role verification logic (`role.js`), `express-validator` validation pipeline (`validate.js`), and Global Error Handling (`errorHandler.js`).
+- Complete endpoints are mapped inside `routes/`. Upload images work securely via Multer (`utils/upload.js`).
+- The `server.js` starts the backend running API routes on `localhost:5000`.
+
+### 3. Frontend Application (Next.js App Router)
+The frontend uses **Tailwind CSS**, dynamic functional components, contexts, and clear layouts.
+- **`src/app/page.jsx`**: An engaging clean Landing Page showing benefits and quick links.
+- **`src/app/(auth)/login` & `register`**: Authentication routes storing active JWT tokens inside `js-cookie`. Contains specific "I am a [Buyer / Seller]" dropdowns.
+- **`src/app/browse/page.jsx`**: A comprehensive Book listing UI providing filters for category, condition, and pagination functionalities built directly matching the search logic array in our query backend.
+- **`src/app/book/[id]/page.jsx`**: Full Book Details page, calculating Seller Ratings, allowing dynamic "Rent for 30 Days" and "Purchase" operations right away.
+- **Dashboards**: Separate views tailored to each role using Next.js routes:
+    - `src/app/admin/dashboard` - Views full system reports and metrics securely.
+    - `src/app/seller/dashboard` & `add-book` - Showing the listed books metrics + Add Book form containing `FormData` image attachment submissions.
+    - `src/app/buyer/dashboard` - Links safely to Active rentals, Wishlists, and purchased Orders.
+
+## 🚀 How to Run the App
+
+### Step 1: Initialize Database (MySQL)
+Ensure your MySQL Server is running locally.
+
+1. Create a database called `campusbook`.
+2. Import the schema script we generated to quickly build out all structures:
+```bash
+cd campusbook/backend
+mysql -u root -p < schema.sql
+```
+
+### Step 2: Configure Environment Variables
+Inside the file `campusbook/backend/.env`, configure your database properties:
+```env
+PORT=5000
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=your_db_password
+DB_NAME=campusbook
+JWT_SECRET=supersecretjwtkey123
+```
+
+### Step 3: Run the Backend server
+```bash
+cd campusbook/backend
+npm install
+npm run dev
+```
+*(Server will listen on http://localhost:5000)*
+
+### Step 4: Run the Frontend application
+```bash
+cd campusbook/frontend
+npm install
+npm run dev
+```
+*(Application should be live locally at http://localhost:3000)*
+
+## 🎉 Verification
+1. Open up `http://localhost:3000` via your web browser.
+2. Sign up selecting a *Buyer* role immediately. You'll be redirected perfectly to your customized specific Student Shopping Dashboard.
+3. Test browsing around to notice smooth Search bar components matching active SQL queries dynamically based on titles dynamically!
