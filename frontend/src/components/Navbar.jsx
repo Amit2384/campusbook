@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
-import { LogOut, BookOpen, ShoppingCart, Heart, User, LayoutDashboard } from "lucide-react";
+import { LogOut, BookOpen, ShoppingCart, Heart, User, LayoutDashboard, Clock } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,10 +12,10 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-pointer">
               <BookOpen className="h-6 w-6 text-primary-600" />
               <span className="font-bold text-xl tracking-tight text-gray-900">CampusBook</span>
-            </Link>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -25,8 +25,9 @@ export default function Navbar() {
               <>
                 {user.role === 'Buyer' && (
                   <>
-                    <Link href="/buyer/wishlist" className="text-gray-600 hover:text-primary-600"><Heart className="h-5 w-5" /></Link>
-                    <Link href="/buyer/cart" className="text-gray-600 hover:text-primary-600"><ShoppingCart className="h-5 w-5" /></Link>
+                    <Link href="/buyer/wishlist" className="text-gray-600 hover:text-primary-600" title="Wishlist"><Heart className="h-5 w-5" /></Link>
+                    <Link href="/buyer/rentals" className="text-gray-600 hover:text-primary-600" title="Rentals"><Clock className="h-5 w-5" /></Link>
+                    <Link href="/buyer/cart" className="text-gray-600 hover:text-primary-600" title="Cart"><ShoppingCart className="h-5 w-5" /></Link>
                   </>
                 )}
                 

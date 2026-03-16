@@ -33,3 +33,12 @@ exports.getRoleByName = async (roleName) => {
     const [rows] = await pool.query('SELECT id FROM roles WHERE name = ?', [roleName]);
     return rows[0];
 };
+
+exports.updatePasswordByEmail = async (email, hashedPassword) => {
+    const [result] = await pool.query(`
+    UPDATE users 
+    SET password = ? 
+    WHERE email = ?
+  `, [hashedPassword, email]);
+    return result.affectedRows > 0;
+};

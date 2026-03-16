@@ -23,4 +23,10 @@ router.post('/login',
 // @route   GET /api/auth/profile
 router.get('/profile', verifyToken, authController.getProfile);
 
+// @route   POST /api/auth/reset-password
+router.post('/reset-password',
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Password must be 6 or more characters').isLength({ min: 6 }),
+    validate, authController.resetPassword);
+
 module.exports = router;

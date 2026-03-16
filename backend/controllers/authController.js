@@ -85,3 +85,30 @@ exports.getProfile = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.resetPassword = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+
+        // Check if user exists
+        const user = await UserModel.findUserByEmail(email);
+        if (!user) {
+            return res.status(404).json({ message: 'User with this email does not exist' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Update password
+        const success = await UserModel.updatePasswordByEmail(email, hashedPassword);
+
+        if (success) {
+            res.json({ message: 'Password reset successful' });
+        } else {
+            res.status(500).json({ message: 'Failed to reset password' });
+        }
+    } catch (err) {
+        next(err);
+    }
+};

@@ -3,15 +3,97 @@
 import { useEffect, useState, use } from "react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { ShoppingCart, Heart, ShieldCheck, Clock, MapPin, User, Star } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { ShoppingCart, Heart, ShieldCheck, Clock, MapPin, User, Star, CreditCard, Loader2, X, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
+// Simple Payment Modal Component
+const PaymentModal = ({ isOpen, onClose, onConfirm, amount, type, bookTitle }) => {
+  const [processing, setProcessing] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handlePay = async () => {
+    setProcessing(true);
+    // Simulate payment processing delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setProcessing(false);
+    onConfirm();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Payment Verification</h3>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition"><X className="w-5 h-5 text-gray-500" /></button>
+          </div>
+
+          <div className="bg-primary-50 p-4 rounded-xl mb-6">
+            <div className="flex justify-between text-sm text-primary-800 mb-1">
+              <span>Book</span>
+              <span className="font-semibold">{bookTitle}</span>
+            </div>
+            <div className="flex justify-between text-sm text-primary-800 mb-1">
+              <span>Transaction Type</span>
+              <span className="font-semibold">{type === 'Purchase' ? 'Buy' : 'Rent'}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold text-primary-900 pt-2 border-t border-primary-200 mt-2">
+              <span>Total Amount</span>
+              <span>${amount}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-gray-50">
+              <CreditCard className="w-5 h-5 text-gray-400" />
+              <div className="flex-1 text-sm text-gray-600">Demo Card: **** **** **** 4242</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-gray-50 border-t flex flex-col gap-3">
+          <button 
+            onClick={handlePay}
+            disabled={processing}
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-primary-200 transition flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            {processing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Processing Payment...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-5 h-5" />
+                Confirm & Pay ${amount}
+              </>
+            )}
+          </button>
+          <button 
+            disabled={processing}
+            onClick={onClose} 
+            className="w-full text-gray-500 text-sm font-medium py-2 hover:text-gray-700 transition"
+          >
+            Cancel Transaction
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function BookDetails({ params }) {
   const unwrappedParams = use(params);
   const { id } = unwrappedParams;
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingType, setPendingType] = useState(null);
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const router = useRouter();
 
   useEffect(() => {
@@ -30,20 +112,29 @@ export default function BookDetails({ params }) {
 
   const addToWishlist = async () => {
     if (!user) return router.push('/login');
+    const loadingToast = toast.loading('Adding to wishlist...');
     try {
       await api.post('/wishlist', { book_id: id });
-      alert('Added to wishlist!');
+      toast.success('Added to wishlist!', { id: loadingToast });
     } catch (err) {
-      alert(err.response?.data?.message || 'Error adding to wishlist');
+      toast.error(err.response?.data?.message || 'Error adding to wishlist', { id: loadingToast });
     }
   };
 
-  const handlePurchase = async (type) => {
+  const initiatePurchase = (type) => {
     if (!user) return router.push('/login');
-    // Simple mock logic for purchase/rent to satisfy module requirements
-    if (type === 'Rent' && !book.rental_price_per_day) return alert('Not available for rent');
-    if (type === 'Purchase' && !book.price) return alert('Not available for purchase');
+    if (type === 'Rent' && !book.rental_price_per_day) return toast.error('Not available for rent');
+    if (type === 'Purchase' && !book.price) return toast.error('Not available for purchase');
+    
+    setPendingType(type);
+    setShowPaymentModal(true);
+  };
 
+  const handlePurchase = async () => {
+    const type = pendingType;
+    setShowPaymentModal(false);
+    const loadingToast = toast.loading(`Processing ${type === 'Purchase' ? 'purchase' : 'rental'}...`);
+    
     try {
       const price = type === 'Purchase' ? book.price : book.rental_price_per_day;
       const items = [{
@@ -53,15 +144,15 @@ export default function BookDetails({ params }) {
         type: type,
         ...(type === 'Rent' && {
           start_date: new Date().toISOString().split('T')[0],
-          end_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0] // 30 days rent default
+          end_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0]
         })
       }];
 
       await api.post('/orders', { items, total_amount: price });
-      alert(`Successfully ${type === 'Purchase' ? 'Purchased' : 'Rented'}!`);
+      toast.success(`Successfully ${type === 'Purchase' ? 'Purchased' : 'Rented'}!`, { id: loadingToast });
       router.push('/buyer/orders');
     } catch (err) {
-      alert(err.response?.data?.message || 'Error processing order');
+      toast.error(err.response?.data?.message || 'Error processing order', { id: loadingToast });
     }
   };
 
@@ -134,9 +225,14 @@ export default function BookDetails({ params }) {
                     <span className="text-sm font-semibold text-primary-800">Buy Now</span>
                     <span className="text-2xl font-bold text-primary-700">${book.price}</span>
                   </div>
-                  <button onClick={() => handlePurchase('Purchase')} className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg font-medium shadow-sm transition flex justify-center items-center gap-2">
-                    <ShoppingCart className="w-4 h-4" /> Purchase
-                  </button>
+                  <div className="flex flex-col gap-2 transition-all">
+                    <button onClick={() => initiatePurchase('Purchase')} className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg font-medium shadow-sm transition flex justify-center items-center gap-2">
+                      <ShieldCheck className="w-4 h-4" /> Buy Now
+                    </button>
+                    <button onClick={() => addToCart(book)} className="w-full bg-white border border-primary-200 text-primary-600 hover:bg-primary-50 py-2.5 rounded-lg font-medium transition flex justify-center items-center gap-2">
+                      <ShoppingCart className="w-4 h-4" /> Add to Cart
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -147,12 +243,21 @@ export default function BookDetails({ params }) {
                     <span className="text-sm font-semibold text-green-800">Rent</span>
                     <span className="text-2xl font-bold text-green-700">${book.rental_price_per_day}<span className="text-sm font-normal text-green-600">/day</span></span>
                   </div>
-                  <button onClick={() => handlePurchase('Rent')} className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium shadow-sm transition flex justify-center items-center gap-2">
+                  <button onClick={() => initiatePurchase('Rent')} className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium shadow-sm transition flex justify-center items-center gap-2">
                     <Clock className="w-4 h-4" /> Rent Book
                   </button>
                 </div>
               )}
             </div>
+
+            <PaymentModal 
+              isOpen={showPaymentModal}
+              onClose={() => setShowPaymentModal(false)}
+              onConfirm={handlePurchase}
+              amount={pendingType === 'Purchase' ? book.price : book.rental_price_per_day}
+              type={pendingType}
+              bookTitle={book.title}
+            />
 
             <div className="flex justify-between items-center border-t border-gray-100 pt-4 mt-2">
               <span className="flex items-center gap-1.5 text-sm text-gray-500">
