@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { Edit, Package, Star, MessageSquare } from "lucide-react";
+import { Edit, Package, Star, MessageSquare, User } from "lucide-react";
 
 export default function SellerDashboard() {
   const { user } = useAuth();
@@ -25,9 +25,11 @@ export default function SellerDashboard() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Seller Dashboard</h1>
-        <button className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition flex items-center gap-2">
-          <Edit className="w-4 h-4" /> Add New Book
-        </button>
+        <div className="flex gap-4">
+          <button className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition flex items-center gap-2">
+            <Edit className="w-4 h-4" /> Add New Book
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">

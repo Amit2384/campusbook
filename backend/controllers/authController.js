@@ -112,3 +112,38 @@ exports.resetPassword = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.updateProfile = async (req, res, next) => {
+    try {
+        const { name, phone } = req.body;
+        const success = await UserModel.updateUserProfile(req.user.id, { name, phone });
+        
+        if (success) {
+            const updatedUser = await UserModel.findUserById(req.user.id);
+            res.json({ message: 'Profile updated successfully', user: updatedUser });
+        } else {
+            res.status(400).json({ message: 'No changes made or user not found' });
+        }
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.uploadProfileImage = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image provided' });
+        }
+
+        const imageUrl = `/uploads/${req.file.filename}`;
+        const success = await UserModel.updateProfileImage(req.user.id, imageUrl);
+
+        if (success) {
+            res.json({ message: 'Profile photo updated', profile_image: imageUrl });
+        } else {
+            res.status(400).json({ message: 'Failed to update profile photo' });
+        }
+    } catch (err) {
+        next(err);
+    }
+};

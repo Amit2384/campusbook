@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await api.post("/auth/login", { email, password });
             Cookies.set("token", res.data.token, { expires: 1 });
-            setUser({ id: res.data.user.id, role: res.data.user.role });
+            setUser(res.data.user);
             return { success: true, role: res.data.user.role };
         } catch (err) {
             return { success: false, message: err.response?.data?.message || "Login failed" };
@@ -53,8 +53,12 @@ export const AuthProvider = ({ children }) => {
         router.push("/login");
     };
 
+    const updateUserData = (newData) => {
+        setUser(prev => prev ? { ...prev, ...newData } : null);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, updateUserData }}>
             {children}
         </AuthContext.Provider>
     );

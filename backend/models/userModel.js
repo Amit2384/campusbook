@@ -12,12 +12,30 @@ exports.findUserByEmail = async (email) => {
 
 exports.findUserById = async (id) => {
     const [rows] = await pool.query(`
-    SELECT users.id, users.name, users.email, users.phone, roles.name as role 
+    SELECT users.id, users.name, users.email, users.phone, users.profile_image, roles.name as role 
     FROM users 
     JOIN roles ON users.role_id = roles.id 
     WHERE users.id = ?
   `, [id]);
     return rows[0];
+};
+
+exports.updateUserProfile = async (id, { name, phone }) => {
+    const [result] = await pool.query(`
+    UPDATE users 
+    SET name = ?, phone = ? 
+    WHERE id = ?
+  `, [name, phone, id]);
+    return result.affectedRows > 0;
+};
+
+exports.updateProfileImage = async (id, imageUrl) => {
+    const [result] = await pool.query(`
+    UPDATE users 
+    SET profile_image = ? 
+    WHERE id = ?
+  `, [imageUrl, id]);
+    return result.affectedRows > 0;
 };
 
 exports.createUser = async (userData) => {

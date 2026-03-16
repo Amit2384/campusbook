@@ -3,6 +3,7 @@ const { check } = require('express-validator');
 const authController = require('../controllers/authController');
 const { validate } = require('../middleware/validate');
 const { verifyToken } = require('../middleware/auth');
+const upload = require('../utils/upload');
 
 const router = express.Router();
 
@@ -22,6 +23,14 @@ router.post('/login',
 
 // @route   GET /api/auth/profile
 router.get('/profile', verifyToken, authController.getProfile);
+
+// @route   PUT /api/auth/profile
+router.put('/profile', verifyToken,
+    check('name', 'Name is required').not().isEmpty(),
+    validate, authController.updateProfile);
+
+// @route   POST /api/auth/profile/photo
+router.post('/profile/photo', verifyToken, upload.single('image'), authController.uploadProfileImage);
 
 // @route   POST /api/auth/reset-password
 router.post('/reset-password',

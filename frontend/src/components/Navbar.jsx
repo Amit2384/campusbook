@@ -28,7 +28,28 @@ export default function Navbar() {
                     <Link href="/buyer/wishlist" className="text-gray-600 hover:text-primary-600" title="Wishlist"><Heart className="h-5 w-5" /></Link>
                     <Link href="/buyer/rentals" className="text-gray-600 hover:text-primary-600" title="Rentals"><Clock className="h-5 w-5" /></Link>
                     <Link href="/buyer/cart" className="text-gray-600 hover:text-primary-600" title="Cart"><ShoppingCart className="h-5 w-5" /></Link>
+                    <Link href="/buyer/profile" className="text-gray-600 hover:text-primary-600" title="Profile">
+                      {user.profile_image ? (
+                        <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-200">
+                          <img src={`http://localhost:5000${user.profile_image}`} alt="Profile" className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <User className="h-5 w-5" />
+                      )}
+                    </Link>
                   </>
+                )}
+                
+                {user.role === 'Seller' && (
+                  <Link href="/seller/profile" className="text-gray-600 hover:text-primary-600" title="Profile">
+                    {user.profile_image ? (
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-200">
+                        <img src={`http://localhost:5000${user.profile_image}`} alt="Profile" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )}
+                  </Link>
                 )}
                 
                 <Link 
