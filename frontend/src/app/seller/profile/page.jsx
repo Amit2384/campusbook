@@ -9,22 +9,30 @@ import EditProfileModal from "@/components/EditProfileModal";
 import toast from "react-hot-toast";
 
 export default function SellerProfile() {
-  const { user, updateUserData } = useAuth();
+  const { user, loading: authLoading, updateUserData } = useAuth();
   const [profileData, setProfileData] = useState(null);
+  const [sellerStats, setSellerStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;  // wait for auth to resolve
     if (user) {
       fetchProfile();
+    } else {
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchProfile = async () => {
     try {
-      const res = await api.get("/auth/profile");
-      setProfileData(res.data);
+      const [profileRes, statsRes] = await Promise.all([
+        api.get("/auth/profile"),
+        api.get("/books/seller/stats"),
+      ]);
+      setProfileData(profileRes.data);
+      setSellerStats(statsRes.data);
     } catch (err) {
       console.error("Error fetching profile:", err);
     } finally {
@@ -141,19 +149,19 @@ export default function SellerProfile() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100 text-center">
                   <BookOpen className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                  <p className="text-2xl font-black text-blue-900">12</p>
+                  <p className="text-2xl font-black text-blue-900">{sellerStats?.totalListed ?? "—"}</p>
                   <p className="text-xs font-bold text-blue-700 uppercase tracking-tighter">Listed</p>
                 </div>
                 
                 <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 text-center">
                   <Package className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
-                  <p className="text-2xl font-black text-emerald-900">14</p>
+                  <p className="text-2xl font-black text-emerald-900">{sellerStats?.booksSold ?? "—"}</p>
                   <p className="text-xs font-bold text-emerald-700 uppercase tracking-tighter">Sold</p>
                 </div>
 
                 <div className="p-6 bg-yellow-50 rounded-2xl border border-yellow-100 text-center">
                   <Star className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
-                  <p className="text-2xl font-black text-yellow-900">4.9</p>
+                  <p className="text-2xl font-black text-yellow-900">{sellerStats?.avgRating ?? "N/A"}</p>
                   <p className="text-xs font-bold text-yellow-700 uppercase tracking-tighter">Rating</p>
                 </div>
 

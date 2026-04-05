@@ -60,3 +60,8 @@ exports.updatePasswordByEmail = async (email, hashedPassword) => {
   `, [hashedPassword, email]);
     return result.affectedRows > 0;
 };
+
+exports.deleteUser = async (id) => {
+    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
+    return result.affectedRows > 0;
+};

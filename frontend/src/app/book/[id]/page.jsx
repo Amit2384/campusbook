@@ -40,9 +40,9 @@ const PaymentModal = ({ isOpen, onClose, onConfirm, amount, type, bookTitle }) =
               <span>Transaction Type</span>
               <span className="font-semibold">{type === 'Purchase' ? 'Buy' : 'Rent'}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold text-primary-900 pt-2 border-t border-primary-200 mt-2">
+            <div className="flex justify-between font-bold text-xl mt-4 pt-4 border-t border-gray-100 text-gray-900">
               <span>Total Amount</span>
-              <span>${amount}</span>
+              <span>₹{amount}</span>
             </div>
           </div>
 
@@ -68,7 +68,7 @@ const PaymentModal = ({ isOpen, onClose, onConfirm, amount, type, bookTitle }) =
             ) : (
               <>
                 <CheckCircle className="w-5 h-5" />
-                Confirm & Pay ${amount}
+                Confirm & Pay ₹{amount}
               </>
             )}
           </button>
@@ -221,9 +221,9 @@ export default function BookDetails({ params }) {
               {/* Buy Option */}
               {book.price && (
                 <div className="border border-primary-100 bg-primary-50 rounded-xl p-4 flex flex-col justify-between">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm font-semibold text-primary-800">Buy Now</span>
-                    <span className="text-2xl font-bold text-primary-700">${book.price}</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-2xl font-bold text-primary-700">₹{book.price}</span>
+                    <span className="text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full">{book.available_quantity} available</span>
                   </div>
                   <div className="flex flex-col gap-2 transition-all">
                     <button onClick={() => initiatePurchase('Purchase')} className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2.5 rounded-lg font-medium shadow-sm transition flex justify-center items-center gap-2">
@@ -240,8 +240,10 @@ export default function BookDetails({ params }) {
               {book.rental_price_per_day && (
                 <div className="border border-green-100 bg-green-50 rounded-xl p-4 flex flex-col justify-between">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm font-semibold text-green-800">Rent</span>
-                    <span className="text-2xl font-bold text-green-700">${book.rental_price_per_day}<span className="text-sm font-normal text-green-600">/day</span></span>
+                    <div className="flex items-center justify-between mb-4">
+                    <span className="text-2xl font-bold text-green-700">₹{book.rental_price_per_day}<span className="text-sm font-normal text-green-600">/day</span></span>
+                    <span className="text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full">{book.available_quantity} available</span>
+                    </div>
                   </div>
                   <button onClick={() => initiatePurchase('Rent')} className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium shadow-sm transition flex justify-center items-center gap-2">
                     <Clock className="w-4 h-4" /> Rent Book

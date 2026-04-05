@@ -50,7 +50,7 @@ export default function Cart() {
                       <Link href={`/book/${book.id}`}>{book.title}</Link>
                     </h4>
                     <p className="text-sm text-gray-500">{book.author}</p>
-                    <div className="mt-2 font-bold text-primary-600">${book.price}</div>
+                    <div className="mt-2 font-bold text-primary-600">₹{book.price}</div>
                   </div>
                   <button 
                     onClick={() => removeFromCart(book.id)}
@@ -68,7 +68,7 @@ export default function Cart() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
@@ -76,7 +76,7 @@ export default function Cart() {
                 </div>
                 <div className="border-t pt-3 mt-3 flex justify-between font-bold text-lg text-gray-900">
                   <span>Total</span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
               </div>
               <button 

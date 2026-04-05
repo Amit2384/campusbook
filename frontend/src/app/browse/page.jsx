@@ -166,7 +166,7 @@ export default function BrowseBooks() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {books.map(book => (
-                <div key={book.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col">
+                <Link key={book.id} href={`/book/${book.id}`} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col group block">
                   {book.image_url ? (
                     <img src={`http://localhost:5000${book.image_url}`} alt={book.title} className="w-full h-48 object-cover bg-gray-50" />
                   ) : (
@@ -179,17 +179,17 @@ export default function BrowseBooks() {
                     <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1 line-clamp-2">{book.title}</h3>
                     <p className="text-sm text-gray-500 mb-4">{book.author}</p>
                     
-                    <div className="mt-auto flex items-center justify-between">
+                    <div className="flex items-end justify-between mt-auto">
                       <div>
-                        {book.price && <div className="font-bold text-gray-900">${book.price}</div>}
-                        {book.rental_price_per_day && <div className="text-xs text-gray-500">${book.rental_price_per_day}/day rent</div>}
+                        {book.price && <div className="font-bold text-gray-900">₹{book.price}</div>}
+                        {book.rental_price_per_day && <div className="text-xs text-gray-500">₹{book.rental_price_per_day}/day rent</div>}
                       </div>
-                      <Link href={`/book/${book.id}`} className="bg-primary-50 text-primary-700 p-2 rounded-lg hover:bg-primary-100 transition">
+                      <div className="bg-primary-50 text-primary-700 p-2 rounded-lg group-hover:bg-primary-100 transition">
                         <ShoppingCart className="w-5 h-5" />
-                      </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}

@@ -133,7 +133,7 @@ export default function Rentals() {
                   </div>
                   
                   <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                    <div className="text-sm font-bold text-gray-900">${rental.rental_price_per_day}<span className="text-[10px] font-medium text-gray-400">/day</span></div>
+                    <div className="text-sm font-bold text-gray-900">₹{rental.rental_price_per_day}<span className="text-[10px] font-medium text-gray-400">/day</span></div>
                     
                     {rental.status === 'Active' ? (
                       <button 

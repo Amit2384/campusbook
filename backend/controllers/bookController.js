@@ -63,3 +63,23 @@ exports.getCategories = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.getSellerListings = async (req, res, next) => {
+    try {
+        const sellerId = req.user.id;
+        const listings = await BookModel.getSellerListings(sellerId);
+        res.json(listings);
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getSellerStats = async (req, res, next) => {
+    try {
+        const sellerId = req.user.id;
+        const stats = await BookModel.getSellerStats(sellerId);
+        res.json(stats);
+    } catch (err) {
+        next(err);
+    }
+};

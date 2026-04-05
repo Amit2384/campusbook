@@ -98,12 +98,12 @@ export default function AddBook() {
           <div className="bg-gray-50 p-4 border rounded-lg md:col-span-2">
             <h3 className="font-semibold text-gray-900 mb-4">Pricing Options</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price ($)</label>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (₹)</label>
                 <input type="number" step="0.01" name="price" value={formData.price} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg focus:ring-primary-500" placeholder="Optional" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rental Price / Day ($)</label>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rental Price / Day (₹)</label>
                 <input type="number" step="0.01" name="rental_price_per_day" value={formData.rental_price_per_day} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg focus:ring-primary-500" placeholder="Optional" />
               </div>
             </div>

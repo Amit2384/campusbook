@@ -33,6 +33,25 @@ exports.getAllUsers = async (req, res, next) => {
     }
 };
 
+const UserModel = require('../models/userModel');
+exports.deleteUser = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        // Optional: prevent deleting self
+        if (req.user.id == id) {
+            return res.status(400).json({ message: "Cannot delete your own admin account." });
+        }
+        const success = await UserModel.deleteUser(id);
+        if (success) {
+            res.json({ message: "User deleted successfully" });
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (err) {
+        next(err);
+    }
+};
+
 exports.approveBookListing = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -54,6 +73,16 @@ exports.getPendingBooks = async (req, res, next) => {
       WHERE b.status = 'Pending'
     `);
         res.json(rows);
+    } catch (err) {
+        next(err);
+    }
+};
+
+const OrderModel = require('../models/orderModel');
+exports.getAllOrders = async (req, res, next) => {
+    try {
+        const orders = await OrderModel.getAllOrders();
+        res.json(orders);
     } catch (err) {
         next(err);
     }

@@ -89,7 +89,7 @@ export default function Wishlist() {
                 
                 <div className="mt-auto flex items-center justify-between">
                   <div className="font-bold text-primary-600">
-                    ${book.price || book.rental_price_per_day}
+                    ₹{book.price || book.rental_price_per_day}
                   </div>
                   <Link href={`/book/${book.id}`} className="text-xs font-semibold text-gray-600 hover:text-primary-600">
                     View Details

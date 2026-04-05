@@ -2,13 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Package, ArrowLeft, Clock, Calendar, CheckCircle2 } from "lucide-react";
+import { Package, ArrowLeft, Clock, Calendar, CheckCircle2, Star, MessageSquare } from "lucide-react";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Review Modal State
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewSeller, setReviewSeller] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -23,6 +30,32 @@ export default function Orders() {
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openReviewModal = (sellerId, sellerName) => {
+    setReviewSeller({ id: sellerId, name: sellerName });
+    setRating(5);
+    setComment("");
+    setReviewModalOpen(true);
+  };
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    setSubmittingReview(true);
+    const loadingToast = toast.loading("Submitting review...");
+    try {
+      await api.post("/reviews", {
+        seller_id: reviewSeller.id,
+        rating: String(rating),
+        comment: comment
+      });
+      toast.success(`You rated ${reviewSeller.name} ${rating} stars!`, { id: loadingToast });
+      setReviewModalOpen(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to submit review", { id: loadingToast });
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -66,7 +99,7 @@ export default function Orders() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Total Amount</p>
-                    <p className="text-sm font-bold text-gray-900">${order.total_amount}</p>
+                    <p className="text-sm font-bold text-gray-900">₹{order.total_amount}</p>
                   </div>
                 </div>
                 <div>
@@ -105,7 +138,17 @@ export default function Orders() {
                             Rental due: Soon
                           </div>
                         )}
-                        <div className="mt-2 font-semibold text-gray-900">${item.price_at_purchase}</div>
+                        <div className="flex justify-between items-end mt-2">
+                          <div className="font-semibold text-gray-900">₹{item.price_at_purchase}</div>
+                          {order.status === 'Completed' && (
+                            <button
+                              onClick={() => openReviewModal(item.seller_id, item.seller_name)}
+                              className="text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-gray-400 text-gray-400" /> Rate Seller
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -113,6 +156,67 @@ export default function Orders() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {reviewModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Leave a Review</h3>
+                <p className="text-gray-500 text-sm">For Seller: {reviewSeller?.name}</p>
+              </div>
+            </div>
+            <div className="p-6">
+              <form onSubmit={submitReview} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className="p-1 focus:outline-none transition-transform hover:scale-110"
+                      >
+                        <Star className={`w-8 h-8 transition-colors ${rating >= star ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-100 text-gray-200'}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Comments (Optional)</label>
+                  <textarea
+                    rows={4}
+                    className="w-full px-4 py-3 border rounded-xl focus:ring-primary-500 bg-gray-50 text-gray-900 resize-none"
+                    placeholder="How was your experience buying from this seller?"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2 border-t border-gray-50">
+                  <button
+                    type="button"
+                    onClick={() => setReviewModalOpen(false)}
+                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingReview}
+                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition disabled:opacity-50 flex justify-center items-center gap-2"
+                  >
+                    {submittingReview ? "Submitting..." : <>Submit <MessageSquare className="w-4 h-4" /></>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

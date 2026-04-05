@@ -98,3 +98,50 @@ exports.getCategories = async () => {
     const [rows] = await pool.query('SELECT * FROM categories');
     return rows;
 };
+
+exports.getSellerListings = async (sellerId) => {
+    const [rows] = await pool.query(`
+    SELECT 
+      b.*,
+      c.name as category_name,
+      COALESCE(SUM(CASE WHEN oi.type = 'Purchase' THEN oi.quantity ELSE 0 END), 0) as total_sold,
+      COALESCE(SUM(CASE WHEN oi.type = 'Rent' THEN oi.quantity ELSE 0 END), 0) as total_rented,
+      COALESCE(SUM(oi.price_at_purchase * oi.quantity), 0) as total_revenue
+    FROM books b
+    JOIN categories c ON b.category_id = c.id
+    LEFT JOIN order_items oi ON oi.book_id = b.id
+    WHERE b.seller_id = ?
+    GROUP BY b.id, b.seller_id, b.category_id, b.title, b.author, b.description,
+             b.condition_state, b.price, b.rental_price_per_day, b.available_quantity,
+             b.image_url, b.status, b.created_at, c.id, c.name
+    ORDER BY b.created_at DESC
+  `, [sellerId]);
+    return rows;
+};
+
+exports.getSellerStats = async (sellerId) => {
+    const [[listings]] = await pool.query(
+        'SELECT COUNT(*) as total_listed FROM books WHERE seller_id = ?',
+        [sellerId]
+    );
+    const [[sales]] = await pool.query(`
+        SELECT 
+          COALESCE(SUM(CASE WHEN oi.type = 'Purchase' THEN oi.quantity ELSE 0 END), 0) as books_sold,
+          COALESCE(SUM(CASE WHEN oi.type = 'Rent' THEN oi.quantity ELSE 0 END), 0) as books_rented,
+          COALESCE(SUM(oi.price_at_purchase * oi.quantity), 0) as total_revenue
+        FROM order_items oi
+        JOIN books b ON oi.book_id = b.id
+        WHERE b.seller_id = ?
+    `, [sellerId]);
+    const [[ratingRow]] = await pool.query(
+        'SELECT AVG(rating) as avg_rating FROM reviews WHERE seller_id = ?',
+        [sellerId]
+    );
+    return {
+        totalListed: listings.total_listed,
+        booksSold: sales.books_sold,
+        booksRented: sales.books_rented,
+        totalRevenue: Number(sales.total_revenue).toFixed(2),
+        avgRating: ratingRow.avg_rating ? Number(ratingRow.avg_rating).toFixed(1) : null
+    };
+};
