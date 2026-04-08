@@ -59,114 +59,129 @@ export default function BuyerProfile() {
   if (!user || !profileData) return <div className="p-20 text-center">User not found</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <Link href="/buyer/dashboard" className="inline-flex items-center text-sm text-gray-500 hover:text-primary-600 mb-8 transition">
-        <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
-      </Link>
+    <div className="relative min-h-[calc(100vh-4rem)] bg-gray-50 pb-20">
+      {/* Dark Blue Header Background */}
+      <div className="absolute top-0 left-0 right-0 h-80 bg-gradient-to-br from-[#0a1e3f] to-[#154682] z-0"></div>
+      
+      <div className="max-w-4xl mx-auto px-4 pt-12 relative z-10">
+        <Link href="/buyer/dashboard" className="inline-flex items-center text-sm text-blue-200 hover:text-white mb-10 transition">
+          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+        </Link>
 
-      <div className="bg-white rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 overflow-hidden">
-        {/* Header Profile Section */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 px-8 py-12 text-white relative">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="relative group">
-              <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner overflow-hidden">
-                {profileData.profile_image ? (
-                  <img 
-                    src={`http://localhost:5000${profileData.profile_image}`} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <User className="w-12 h-12 text-white" />
-                )}
-                {uploading && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 text-white animate-spin" />
-                  </div>
-                )}
-              </div>
-              <label className="absolute -bottom-2 -right-2 bg-white text-primary-600 p-2 rounded-xl shadow-lg cursor-pointer hover:scale-110 transition border border-primary-100">
-                <Camera className="w-4 h-4" />
-                <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} />
-              </label>
+        {/* Profile Header Block embedded in the blue area */}
+        <div className="flex flex-col md:flex-row items-center gap-6 mb-12 px-2 md:px-6">
+          <div className="relative">
+            <div className="w-[120px] h-[120px] rounded-full bg-blue-900 border-[3px] border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)] flex items-center justify-center overflow-hidden">
+              {profileData.profile_image ? (
+                <img 
+                  src={`http://localhost:5000${profileData.profile_image}`} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-16 h-16 text-blue-300" />
+              )}
+              {uploading && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                </div>
+              )}
             </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-3xl font-extrabold">{profileData.name}</h1>
-              <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold tracking-wider uppercase">
-                  {profileData.role}
-                </span>
-                <span className="text-primary-100 text-sm">Member since 2024</span>
-              </div>
+            <label className="absolute bottom-0 right-0 bg-white text-gray-500 p-2 rounded-full shadow-lg border-2 border-white cursor-pointer hover:text-primary-600 transition">
+              <Camera className="w-4 h-4" />
+              <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} />
+            </label>
+          </div>
+          <div className="text-center md:text-left text-white">
+            <h1 className="text-4xl font-extrabold tracking-tight mb-2">{profileData.name}</h1>
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              <span className="px-3 py-1 bg-blue-600/50 border border-blue-400 rounded text-xs font-bold tracking-widest uppercase">
+                {profileData.role}
+              </span>
+              <span className="text-blue-200 text-sm">Member since 2024</span>
             </div>
           </div>
         </div>
 
-        {/* Info Grid */}
-        <div className="p-8 md:p-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        {/* Floating Split Card */}
+        <div className="bg-white rounded-[2rem] shadow-2xl shadow-gray-200/50 p-8 md:p-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            
             {/* Account Details */}
             <div className="space-y-8">
-              <h2 className="text-xl font-bold text-gray-900 border-b pb-4">Account Information</h2>
+              <h2 className="text-2xl font-extrabold text-gray-900 mb-6">Account Details</h2>
               
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 bg-gray-50 rounded-xl text-gray-400"><Mail className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Email Address</p>
-                  <p className="text-gray-900 font-medium">{profileData.email}</p>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-gray-600">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">Email Address</p>
+                    <p className="text-gray-900 font-semibold">{profileData.email}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 bg-gray-50 rounded-xl text-gray-400"><Phone className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Phone Number</p>
-                  <p className="text-gray-900 font-medium">{profileData.phone || 'Not provided'}</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-gray-600">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">Phone Number</p>
+                    <p className="text-gray-900 font-semibold">{profileData.phone || 'Not provided'}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 bg-gray-50 rounded-xl text-gray-400"><Shield className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Account Security</p>
-                  <p className="text-gray-900 font-medium">Verified Account</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-gray-600">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-0.5">Account Security</p>
+                    <p className="text-gray-900 font-semibold">Verified Account</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats/Actions */}
-            <div className="space-y-8">
-              <h2 className="text-xl font-bold text-gray-900 border-b pb-4">Activity Summary</h2>
+            {/* Quick Actions overlay */}
+            <div className="relative">
+               {/* Vertical Divider line for desktop */}
+              <div className="hidden md:block absolute -left-6 top-4 bottom-4 w-px bg-gray-100"></div>
+              
+              <h2 className="text-2xl font-extrabold text-gray-900 mb-6">Quick Actions</h2>
               
               <div className="grid grid-cols-2 gap-4">
-                <Link href="/buyer/orders" className="p-6 bg-green-50 rounded-2xl border border-green-100 hover:bg-green-100 transition group text-center">
-                  <ShoppingBag className="w-6 h-6 text-green-600 mx-auto mb-2 group-hover:scale-110 transition" />
-                  <p className="text-sm font-bold text-green-900">Orders</p>
+                <Link href="/buyer/orders" className="p-6 bg-[#e6f4ea] rounded-2xl hover:scale-105 transition-transform flex flex-col items-center justify-center text-center h-32">
+                  <ShoppingBag className="w-7 h-7 text-[#1e8e3e] mb-2" />
+                  <p className="text-sm font-semibold text-[#1e8e3e]">Orders</p>
                 </Link>
                 
-                <Link href="/buyer/wishlist" className="p-6 bg-red-50 rounded-2xl border border-red-100 hover:bg-red-100 transition group text-center">
-                  <Heart className="w-6 h-6 text-red-600 mx-auto mb-2 group-hover:scale-110 transition" />
-                  <p className="text-sm font-bold text-red-900">Wishlist</p>
+                <Link href="/buyer/wishlist" className="p-6 bg-[#fce8e6] rounded-2xl hover:scale-105 transition-transform flex flex-col items-center justify-center text-center h-32">
+                  <Heart className="w-7 h-7 text-[#d93025] mb-2" />
+                  <p className="text-sm font-semibold text-[#d93025]">Wishlist</p>
                 </Link>
 
-                <Link href="/buyer/rentals" className="p-6 bg-blue-50 rounded-2xl border border-blue-100 hover:bg-blue-100 transition group text-center">
-                  <Clock className="w-6 h-6 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition" />
-                  <p className="text-sm font-bold text-blue-900">Rentals</p>
+                <Link href="/buyer/rentals" className="p-6 bg-[#e8effd] rounded-2xl hover:scale-105 transition-transform flex flex-col items-center justify-center text-center h-32">
+                  <Clock className="w-7 h-7 text-[#1967d2] mb-2" />
+                  <p className="text-sm font-semibold text-[#1967d2]">Rentals</p>
                 </Link>
 
                 <button 
                   onClick={() => setIsEditModalOpen(true)}
-                  className="p-6 bg-gray-50 rounded-2xl border border-gray-100 text-center hover:bg-gray-100 transition group"
+                  className="p-6 bg-[#f1f3f4] rounded-2xl hover:scale-105 transition-transform flex flex-col items-center justify-center text-center h-32"
                 >
-                  <User className="w-6 h-6 text-gray-400 mx-auto mb-2 group-hover:text-primary-600 transition" />
-                  <p className="text-sm font-bold text-gray-900">Edit Info</p>
+                  <User className="w-7 h-7 text-[#5f6368] mb-2" />
+                  <p className="text-sm font-semibold text-[#5f6368]">Edit Info</p>
                 </button>
               </div>
             </div>
+
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-100 flex justify-center">
-             <button className="text-gray-400 text-sm hover:text-red-500 font-medium transition cursor-help">Deactivate Account</button>
+          {/* Deactivate Option */}
+          <div className="mt-12 pt-6 border-t border-gray-100 flex justify-center">
+             <button className="text-[#d93025] text-sm hover:underline font-medium transition cursor-help">Deactivate Account</button>
           </div>
         </div>
 
