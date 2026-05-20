@@ -83,3 +83,45 @@ exports.getSellerStats = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.deleteBook = async (req, res, next) => {
+    try {
+        const bookId = req.params.id;
+        const sellerId = req.user.id;
+
+        const result = await BookModel.deleteBook(bookId, sellerId);
+
+        if (result.error === 'cannot_delete_has_orders') {
+            return res.status(400).json({
+                message: 'Cannot delete a book that has existing orders. Remove the listing by marking it unavailable instead.'
+            });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Book not found or you do not have permission to delete it.' });
+        }
+
+        res.json({ message: 'Book listing deleted successfully.' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.removeListing = async (req, res, next) => {
+    try {
+        const bookId = req.params.id;
+        const sellerId = req.user.id;
+
+        const affectedRows = await BookModel.setBookRemoved(bookId, sellerId);
+
+        if (affectedRows === 0) {
+            return res.status(404).json({ message: 'Book not found or you do not have permission to update it.' });
+        }
+
+        res.json({ message: 'Listing removed successfully. The book is no longer visible to buyers.' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+

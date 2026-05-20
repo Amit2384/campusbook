@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ShoppingCart, ArrowLeft, Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import toast from "react-hot-toast";
 
 export default function Cart() {
   const { cart, removeFromCart, cartTotal } = useCart();

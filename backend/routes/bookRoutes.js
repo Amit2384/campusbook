@@ -31,4 +31,12 @@ router.get('/', bookController.getBooks);
 // @route   GET /api/books/:id
 router.get('/:id', bookController.getBookDetails);
 
+// @route   PATCH /api/books/:id/remove  (seller marks listing as Removed)
+router.patch('/:id/remove', verifyToken, isSeller, bookController.removeListing);
+
+// @route   DELETE /api/books/:id  (seller deletes their own listing)
+router.delete('/:id', verifyToken, isSeller, bookController.deleteBook);
+
 module.exports = router;
+
+

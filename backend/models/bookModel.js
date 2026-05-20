@@ -119,6 +119,31 @@ exports.getSellerListings = async (sellerId) => {
     return rows;
 };
 
+exports.setBookRemoved = async (bookId, sellerId) => {
+    const [result] = await pool.query(
+        "UPDATE books SET status = 'Removed', available_quantity = 0 WHERE id = ? AND seller_id = ?",
+        [bookId, sellerId]
+    );
+    return result.affectedRows;
+};
+
+exports.deleteBook = async (bookId, sellerId) => {
+    // Prevent deletion if the book has any associated order items (preserve order history)
+    const [orderCheck] = await pool.query(
+        'SELECT COUNT(*) as cnt FROM order_items WHERE book_id = ?',
+        [bookId]
+    );
+    if (orderCheck[0].cnt > 0) {
+        return { error: 'cannot_delete_has_orders' };
+    }
+
+    const [result] = await pool.query(
+        'DELETE FROM books WHERE id = ? AND seller_id = ?',
+        [bookId, sellerId]
+    );
+    return { affectedRows: result.affectedRows };
+};
+
 exports.getSellerStats = async (sellerId) => {
     const [[listings]] = await pool.query(
         'SELECT COUNT(*) as total_listed FROM books WHERE seller_id = ?',

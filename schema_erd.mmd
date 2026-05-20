@@ -1,0 +1,105 @@
+erDiagram
+    ROLES ||--o{ USERS : "has"
+    CATEGORIES ||--o{ BOOKS : "categorizes"
+    USERS ||--o{ BOOKS : "sells"
+    USERS ||--o{ ORDERS : "places"
+    ORDERS ||--o{ ORDER_ITEMS : "contains"
+    BOOKS ||--o{ ORDER_ITEMS : "included in"
+    ORDER_ITEMS ||--o| RENTALS : "results in"
+    USERS ||--o{ RENTALS : "rents"
+    BOOKS ||--o{ RENTALS : "rented as"
+    USERS ||--o{ REVIEWS : "writes (buyer)"
+    USERS ||--o{ REVIEWS : "receives (seller)"
+    USERS ||--o{ WISHLIST : "adds to"
+    BOOKS ||--o{ WISHLIST : "added to"
+    ORDERS ||--o| PAYMENTS : "paid via"
+
+    ROLES {
+        INT id PK
+        VARCHAR(50) name
+    }
+    
+    USERS {
+        INT id PK
+        INT role_id FK
+        VARCHAR(100) name
+        VARCHAR(100) email
+        VARCHAR(255) password
+        VARCHAR(20) phone
+        TIMESTAMP created_at
+    }
+    
+    CATEGORIES {
+        INT id PK
+        VARCHAR(100) name
+    }
+    
+    BOOKS {
+        INT id PK
+        INT seller_id FK
+        INT category_id FK
+        VARCHAR(255) title
+        VARCHAR(255) author
+        TEXT description
+        ENUM condition_state
+        DECIMAL price
+        DECIMAL rental_price_per_day
+        INT available_quantity
+        VARCHAR(255) image_url
+        ENUM status
+        TIMESTAMP created_at
+    }
+    
+    ORDERS {
+        INT id PK
+        INT buyer_id FK
+        DECIMAL total_amount
+        ENUM status
+        TIMESTAMP created_at
+    }
+    
+    ORDER_ITEMS {
+        INT id PK
+        INT order_id FK
+        INT book_id FK
+        INT quantity
+        DECIMAL price_at_purchase
+        ENUM type
+    }
+    
+    RENTALS {
+        INT id PK
+        INT order_item_id FK
+        INT buyer_id FK
+        INT book_id FK
+        DATE rental_start_date
+        DATE rental_end_date
+        ENUM status
+        DECIMAL late_fine
+        TIMESTAMP created_at
+    }
+    
+    REVIEWS {
+        INT id PK
+        INT buyer_id FK
+        INT seller_id FK
+        ENUM rating
+        TEXT comment
+        TIMESTAMP created_at
+    }
+    
+    WISHLIST {
+        INT id PK
+        INT user_id FK
+        INT book_id FK
+        TIMESTAMP created_at
+    }
+    
+    PAYMENTS {
+        INT id PK
+        INT order_id FK
+        ENUM payment_method
+        DECIMAL amount
+        ENUM status
+        TIMESTAMP payment_date
+    }

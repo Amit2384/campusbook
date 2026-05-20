@@ -1,13 +1,103 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Package, Heart, Clock } from "lucide-react";
+import { Package, Heart, Clock, Activity } from "lucide-react";
+import api from "@/lib/api";
+
+// Format a date string into a readable label (e.g. "May 16, 2026")
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+// Returns days remaining until a date (negative = overdue)
+function daysUntil(dateStr) {
+  const diff = new Date(dateStr) - new Date();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+// Skeleton loader card
+function SkeletonCard() {
+  return (
+    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 animate-pulse">
+      <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0" />
+      <div className="flex-1 space-y-2 pt-1">
+        <div className="h-3.5 bg-gray-100 rounded w-4/5" />
+        <div className="h-3 bg-gray-100 rounded w-2/5" />
+      </div>
+    </div>
+  );
+}
 
 export default function BuyerDashboard() {
   const { user } = useAuth();
+  const [activity, setActivity] = useState({ order: null, wishlist: null, rental: null });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchActivity = async () => {
+      try {
+        const [ordersRes, wishlistRes, rentalsRes] = await Promise.allSettled([
+          api.get("/orders"),
+          api.get("/wishlist"),
+          api.get("/rentals"),
+        ]);
+
+        // Most recent order
+        const orders = ordersRes.status === "fulfilled" ? ordersRes.value.data : [];
+        const latestOrder = orders[0] ?? null;
+
+        // Most recent wishlist item
+        const wishlist = wishlistRes.status === "fulfilled" ? wishlistRes.value.data : [];
+        const latestWishlist = wishlist[0] ?? null;
+
+        // Most recent active rental (status !== 'Returned'), sorted by end date proximity
+        const rentals = rentalsRes.status === "fulfilled" ? rentalsRes.value.data : [];
+        const activeRentals = rentals.filter((r) => r.status !== "Returned");
+        const latestRental =
+          activeRentals.sort(
+            (a, b) => new Date(a.rental_end_date) - new Date(b.rental_end_date)
+          )[0] ?? null;
+
+        setActivity({ order: latestOrder, wishlist: latestWishlist, rental: latestRental });
+      } catch (err) {
+        console.error("Failed to fetch recent activity", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivity();
+  }, [user]);
 
   if (!user) return null;
+
+  const { order, wishlist, rental } = activity;
+  const hasAnyActivity = order || wishlist || rental;
+
+  // Build the order label
+  const orderTitle = order?.items?.[0]?.title
+    ? `"${order.items[0].title}"${order.items.length > 1 ? ` +${order.items.length - 1} more` : ""}`
+    : null;
+  const orderLabel = order
+    ? `Placed Order #${String(order.id).padStart(5, "0")}${orderTitle ? ` — ${orderTitle}` : ""} — ₹${order.total_amount}`
+    : null;
+
+  // Rental due label
+  const rentalDays = rental ? daysUntil(rental.rental_end_date) : null;
+  const rentalLabel = rental
+    ? rentalDays < 0
+      ? `Rental Overdue: "${rental.title}" by ${Math.abs(rentalDays)} day${Math.abs(rentalDays) !== 1 ? "s" : ""}`
+      : rentalDays === 0
+      ? `Rental Due Today: "${rental.title}"`
+      : `Rental Due: "${rental.title}" in ${rentalDays} day${rentalDays !== 1 ? "s" : ""}`
+    : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -71,38 +161,104 @@ export default function BuyerDashboard() {
       {/* Recent Activity Section */}
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition">
-            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-               <Package className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 text-sm mb-1 leading-tight">Placed Order #12345 - "Introduction to Algorithms" - ₹50.00</p>
-              <p className="text-xs text-gray-400">Jan 17, 2026</p>
-            </div>
-          </div>
-          
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition">
-            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-               <Heart className="w-5 h-5 text-red-500" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 text-sm mb-1 leading-tight">Added "Design Patterns" to Wishlist</p>
-              <p className="text-xs text-gray-400">Jan 14, 2026</p>
-            </div>
-          </div>
 
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition">
-            <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center shrink-0">
-               <Clock className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 text-sm mb-1 leading-tight">Rental Due: "Artificial Intelligence" in 5 days</p>
-              <p className="text-xs text-gray-400">Aug 21, 2025</p>
-            </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
           </div>
-        </div>
+        ) : !hasAnyActivity ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
+            <div className="mx-auto w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+              <Activity className="w-6 h-6 text-gray-300" />
+            </div>
+            <p className="text-gray-400 text-sm">No recent activity yet. Start by browsing books!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* Latest Order */}
+            {order ? (
+              <Link href="/buyer/orders" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group">
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm mb-1 leading-snug group-hover:text-green-700 transition line-clamp-2">
+                    {orderLabel}
+                  </p>
+                  <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter mb-1 ${
+                    order.status === "Completed" ? "bg-green-100 text-green-700" :
+                    order.status === "Cancelled" ? "bg-red-100 text-red-600" :
+                    "bg-blue-100 text-blue-700"
+                  }`}>
+                    {order.status ?? "Pending"}
+                  </span>
+                  <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
+                </div>
+              </Link>
+            ) : (
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-dashed border-gray-200 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5 text-green-300" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">No orders placed yet.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Latest Wishlist Item */}
+            {wishlist ? (
+              <Link href="/buyer/wishlist" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition group">
+                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                  <Heart className="w-5 h-5 text-red-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm mb-1 leading-snug group-hover:text-red-600 transition line-clamp-2">
+                    Added &ldquo;{wishlist.title}&rdquo; to Wishlist
+                  </p>
+                  <p className="text-xs text-gray-400">{wishlist.author && <span className="text-gray-500">{wishlist.author} · </span>}{formatDate(wishlist.created_at)}</p>
+                </div>
+              </Link>
+            ) : (
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-dashed border-gray-200 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                  <Heart className="w-5 h-5 text-red-300" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Your wishlist is empty.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Active Rental */}
+            {rental ? (
+              <Link href="/buyer/rentals" className={`bg-white p-5 rounded-2xl shadow-sm border flex items-start gap-4 hover:shadow-md transition group ${rentalDays !== null && rentalDays <= 2 ? "border-orange-200 bg-orange-50/30" : "border-gray-100"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${rentalDays !== null && rentalDays <= 2 ? "bg-orange-100" : "bg-yellow-50"}`}>
+                  <Clock className={`w-5 h-5 ${rentalDays !== null && rentalDays <= 2 ? "text-orange-500" : "text-yellow-600"}`} />
+                </div>
+                <div className="min-w-0">
+                  <p className={`font-semibold text-sm mb-1 leading-snug line-clamp-2 transition ${rentalDays !== null && rentalDays <= 2 ? "text-orange-700 group-hover:text-orange-600" : "text-gray-900 group-hover:text-yellow-700"}`}>
+                    {rentalLabel}
+                  </p>
+                  <p className="text-xs text-gray-400">Due: {formatDate(rental.rental_end_date)}</p>
+                </div>
+              </Link>
+            ) : (
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-dashed border-gray-200 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-yellow-300" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">No active rentals.</p>
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
       </div>
     </div>
   );
