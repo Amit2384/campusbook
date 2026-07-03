@@ -25,6 +25,18 @@ export default function RootLayout({ children }) {
             </footer>
           </CartProvider>
         </AuthProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const script = document.createElement('script');
+                script.src = "https://cdn.botpress.cloud/webchat/v3.6/shareable.html?configUrl=https://files.bpcontent.cloud/2026/07/03/10/20260703105214-HZ9G06I8.json";
+                script.async = true;
+                document.body.appendChild(script);
+              })();
+            `
+          }}
+        />
       </body>
     </html>
   );
