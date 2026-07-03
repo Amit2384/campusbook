@@ -12,18 +12,6 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        <script src="https://cdn.botpress.cloud/webchat/v3.6/inject.js"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.botpressWebChat.init({
-                configUrl: 'https://files.bpcontent.cloud/2026/07/03/10/20260703105214-HZ9G06I8.json'
-              });
-            `
-          }}
-        />
-      </head>
       <body className="bg-gray-50 flex flex-col min-h-screen">
         <AuthProvider>
           <CartProvider>
