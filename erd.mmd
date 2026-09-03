@@ -1,0 +1,49 @@
+flowchart LR
+    classDef entity fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000,shape:rect
+    classDef rel fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000
+    classDef attr fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000
+
+    U_ID([ID]):::attr
+    U_NAME([name]):::attr
+    U_EMAIL([email]):::attr
+    
+    USER[USER]:::entity
+    BOOK[BOOK]:::entity
+    ORDER[ORDER]:::entity
+    RENTAL[RENTAL]:::entity
+
+    U_ID --- USER
+    U_NAME --- USER
+    U_EMAIL --- USER
+
+    LISTS{Lists}:::rel
+    PLACES{Places}:::rel
+    RENTS{Rents}:::rel
+
+    USER --- LISTS --- BOOK
+    USER --- PLACES --- ORDER
+    USER --- RENTS --- RENTAL
+
+    B_ID([id]):::attr
+    B_TITLE([title]):::attr
+    B_PRICE([price]):::attr
+
+    BOOK --- B_ID
+    BOOK --- B_TITLE
+    BOOK --- B_PRICE
+
+    O_ID([id]):::attr
+    O_TOTAL([total_amount]):::attr
+    O_STATUS([status]):::attr
+
+    ORDER --- O_ID
+    ORDER --- O_TOTAL
+    ORDER --- O_STATUS
+
+    R_ID([id]):::attr
+    R_START([start_date]):::attr
+    R_END([end_date]):::attr
+
+    RENTAL --- R_ID
+    RENTAL --- R_START
+    RENTAL --- R_END

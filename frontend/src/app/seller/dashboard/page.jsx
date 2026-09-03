@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   BookOpen, Package, Star, TrendingUp, Plus, RefreshCw,
-  Tag, Clock, CheckCircle, XCircle, AlertCircle, IndianRupee, ShoppingBag
+  Tag, Clock, CheckCircle, XCircle, AlertCircle, IndianRupee, ShoppingBag, Trash2, EyeOff
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -46,6 +46,11 @@ export default function SellerDashboard() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [deleteSuccess, setDeleteSuccess] = useState(null);
+  const [removeLoading, setRemoveLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -63,6 +68,43 @@ export default function SellerDashboard() {
       setError(`Failed to load dashboard data: ${msg}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      await api.delete(`/books/${deleteTarget.id}`);
+      setListings((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      setDeleteSuccess(`"${deleteTarget.title}" has been removed from your listings.`);
+      setTimeout(() => setDeleteSuccess(null), 4000);
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || "Failed to delete listing.");
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  const confirmRemove = async (book) => {
+    const target = book || deleteTarget;
+    if (!target) return;
+    setRemoveLoading(true);
+    setDeleteError(null);
+    try {
+      await api.patch(`/books/${target.id}/remove`);
+      setListings((prev) =>
+        prev.map((b) => b.id === target.id ? { ...b, status: "Removed", available_quantity: 0 } : b)
+      );
+      setDeleteTarget(null);
+      setDeleteSuccess(`"${target.title}" has been unlisted and is no longer visible to buyers.`);
+      setTimeout(() => setDeleteSuccess(null), 4000);
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || "Failed to remove listing.");
+    } finally {
+      setRemoveLoading(false);
     }
   };
 
@@ -235,6 +277,7 @@ export default function SellerDashboard() {
                     <th className="px-6 py-4 text-left">Sold</th>
                     <th className="px-6 py-4 text-left">Rented</th>
                     <th className="px-6 py-4 text-left">Status</th>
+                    <th className="px-6 py-4 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -286,6 +329,29 @@ export default function SellerDashboard() {
                             {cfg.label}
                           </span>
                         </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            {book.status !== "Removed" && (
+                              <button
+                                onClick={() => confirmRemove(book)}
+                                disabled={removeLoading}
+                                title="Remove listing (hide from buyers)"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors disabled:opacity-50"
+                              >
+                                <EyeOff className="w-3.5 h-3.5" />
+                                Remove
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteTarget(book)}
+                              title="Permanently delete listing"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Delete
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
@@ -295,6 +361,62 @@ export default function SellerDashboard() {
           </div>
         )}
       </div>
+
+      {/* Success Toast */}
+      {deleteSuccess && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-xl shadow-emerald-200 text-sm font-medium">
+          <CheckCircle className="w-5 h-5 flex-shrink-0" />
+          {deleteSuccess}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4">
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mx-auto mb-5">
+              <Trash2 className="w-7 h-7 text-red-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-1">Delete Listing?</h3>
+            <p className="text-sm text-gray-500 text-center mb-1">
+              Are you sure you want to permanently remove
+            </p>
+            <p className="text-sm font-semibold text-gray-800 text-center mb-5 line-clamp-2">&ldquo;{deleteTarget.title}&rdquo;?</p>
+
+            {deleteError && (
+              <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl text-orange-800 text-xs">
+                <p className="font-semibold mb-2">{deleteError}</p>
+                <button
+                  onClick={() => confirmRemove(deleteTarget)}
+                  disabled={removeLoading}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-orange-100 hover:bg-orange-200 border border-orange-300 text-orange-800 font-semibold text-xs transition disabled:opacity-50"
+                >
+                  {removeLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <EyeOff className="w-3.5 h-3.5" />}
+                  {removeLoading ? "Removing…" : "Remove Listing Instead"}
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setDeleteTarget(null); setDeleteError(null); }}
+                disabled={deleteLoading || removeLoading}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteLoading || removeLoading}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleteLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {deleteLoading ? "Deleting…" : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
